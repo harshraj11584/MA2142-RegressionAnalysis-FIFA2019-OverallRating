@@ -1,6 +1,6 @@
 ---
 title: "Code"
-output: html_document
+output: rmarkdown::github_document
 ---
 Reading Data from csv File
 Removing the Unwanted Features from Dataset
