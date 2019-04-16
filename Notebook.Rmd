@@ -1,5 +1,5 @@
 ---
-title: "Code"
+title: "Notebook"
 output: rmarkdown::github_document
 ---
 Reading Data from csv File

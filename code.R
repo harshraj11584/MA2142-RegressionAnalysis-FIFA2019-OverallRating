@@ -1,0 +1,57 @@
+library(readxl)
+data_original <- read.csv("/home/harsh/Desktop/Regression_Analysis/Regression_Project/data.csv")
+data_original
+
+cols.dont.want <- c("X","ID","Name", "Photo", "Nationality", "Flag", "Potential", "Club", "Club.Logo", "Preferred.Foot", "Work.Rate", "Body.Type", "Real.Face", "Position", "Jersey.Number", "Joined", "Loaned.From", "Contract.Valid.Until" ) 
+data <- data_original[, ! names(data_original) %in% cols.dont.want, drop = F]
+data
+
+
+data$Value <- gsub("€", "", data$Value)
+data$Value <- as.numeric(gsub("M", "", data$Value))
+data$Release.Clause <- gsub("€", "", data$Release.Clause)
+data$Release.Clause <- as.numeric(gsub("M", "", data$Release.Clause))
+data$Wage <- gsub("€", "", data$Wage)
+data$Wage <- as.numeric(gsub("K", "", data$Wage))
+data$Height <- as.numeric(gsub("\'", ".", data$Height))
+data$Weight <- as.numeric(gsub("lbs", "", data$Weight))
+
+for (i in c(11:38))
+  data[,i]<- as.numeric(gsub("+", ".", data[,i],fixed=TRUE))
+data
+
+for(i in 1:ncol(data))
+  data[is.na(data[,i]), i] <- mean(data[,i], na.rm = TRUE)
+data
+
+
+data_shuffled <- data[sample(nrow(data)),]
+#data_shuffled <- data_shuffled[,-1] #removing the indexing column that shuffling induced
+r1 <- as.integer(nrow(data_shuffled)*0.7) #row number at which splitting takes place
+data_train <- data_shuffled[1:r1,]
+data_test <- data_shuffled[(r1+1):nrow(data_shuffled),]
+
+data_shuffled
+data_train
+data_test
+
+
+
+not_training_features <- c("Overall") 
+x_train <- as.matrix(data_train[, ! names(data_train) %in% not_training_features, drop = F])
+y_train <- as.matrix(data_train[,"Overall", drop = F])
+x_test <- as.matrix(data_test[, ! names(data_test) %in% not_training_features, drop = F])
+y_test <- as.matrix(data_test[,"Overall", drop = F])
+
+print("Dimensions :")
+print("x_train : ")
+print(dim(x_train))
+print("x_test : ")
+print(dim(x_test))
+print("y_train : ")
+print(dim(y_train))
+print("y_test : ")
+print(dim(y_test))
+
+
+
