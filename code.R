@@ -53,5 +53,16 @@ print(dim(y_train))
 print("y_test : ")
 print(dim(y_test))
 
+#fitting the training dataset
 
+model<-Overall~Reputation+Weak_Foot+Skill_Moves+Height+Weight+LS+ST+RS+LW+LF+CF+RF+RW+LAM+CAM+RAM+LM+LCM+CM+RCM+RM+LWB+LDM+CDM+RDM+RWB+LB+LCB+CB+RCB+RB+Crossing+Finishing+HeadingAccuracy+ShortPassing+Volleys+Dribbling+Curve+FKAccuracy+LongPassing+BallControl+Acceleration+SprintSpeed+Agility+Reactions+Balance+ShotPower+Jumping+Stamina+Strength+LongShots+Aggression+Interceptions+Positioning+Vision+Penalties+Composure+Marking+StandingTackle+SlidingTackle+GKDiving+GKHandling+GKKicking+GKPositioning+GKReflexes+Value
+fit1<-lm(model,data_train)
+fit1
+summary(fit1)
+#Residuals:
+#  Min      1Q     Median   3Q     Max 
+#-12.504  -1.595   0.010   1.615  12.306 
+# Residual standard error: 2.478
+# Multiple R-squared:  0.8713,	Adjusted R-squared:  0.8707 
+plot(fit1)
 
