@@ -2,11 +2,18 @@
 title: "Notebook"
 output: rmarkdown::github_document
 ---
-Reading Data from csv File
-Removing the Unwanted Features from Dataset
 
 ```{r}
-library(readxl)
+library('readxl')
+library("dplyr")
+library("ggpubr")
+library('caret')
+```
+Reading Data from csv File
+Removing the Unwanted Categorical Features from Dataset
+
+```{r}
+
 data_original <- read.csv("/home/harsh/Desktop/Regression_Analysis/Regression_Project/data.csv")
 data_original
 
@@ -21,9 +28,9 @@ Replacing All NA/Missing Values with Mean of that column
 
 ```{r}
 data$Value <- gsub("€", "", data$Value)
-data$Value <- as.numeric(gsub("M", "", data$Value))
+data$Value <- as.numeric(gsub("M", "000", data$Value))
 data$Release.Clause <- gsub("€", "", data$Release.Clause)
-data$Release.Clause <- as.numeric(gsub("M", "", data$Release.Clause))
+data$Release.Clause <- as.numeric(gsub("M", "000", data$Release.Clause))
 data$Wage <- gsub("€", "", data$Wage)
 data$Wage <- as.numeric(gsub("K", "", data$Wage))
 data$Height <- as.numeric(gsub("\'", ".", data$Height))
@@ -37,14 +44,33 @@ for(i in 1:ncol(data))
   data[is.na(data[,i]), i] <- mean(data[,i], na.rm = TRUE)
 data
 ```
-
-Shuffle Rows of DataSet
-Seperate the train set and test set
+Normalizing the columns of the dataset to range [0,1] so that all features get equal weightage in model.
+Normalizing to (0,1] instead of standardizing to [-1,1] because BoxCox transformation requires y to be strictly positive.
 
 ```{r}
+#Uncomment to standardize to [-1,1]
+#data_scaled <- as.data.frame(scale(data))
+#data_scaled
 
-data_shuffled <- data[sample(nrow(data)),]
-#data_shuffled <- data_shuffled[,-1] #removing the indexing column that shuffling induced
+# calculate the pre-process parameters from the dataset
+preprocessParams <- preProcess(data, method=c("range"))
+# summarize transform parameters
+print(preprocessParams)
+# transform the dataset using the parameters
+data_scaled <- predict(preprocessParams, data) + c(0.0000001)
+# summarize the transformed dataset
+for(i in 1:ncol(data))
+  data_scaled[is.na(data_scaled[,i]), i] <- mean(data_scaled[,i], na.rm = TRUE)
+  data_scaled[is.infinite(data_scaled[,i]), i] <- mean(data_scaled[,i], na.rm = TRUE)
+#data_scaled
+summary(data_scaled)
+```
+
+Shuffle Rows of DataSet
+Seperate the train set and test set as 70% and 30% of given dataset
+
+```{r}
+data_shuffled <- data_scaled[sample(nrow(data_scaled)),]
 r1 <- as.integer(nrow(data_shuffled)*0.7) #row number at which splitting takes place
 data_train <- data_shuffled[1:r1,]
 data_test <- data_shuffled[(r1+1):nrow(data_shuffled),]
@@ -74,6 +100,126 @@ print(dim(y_train))
 print("y_test : ")
 print(dim(y_test))
 ```
+
+Fitting basic Multiple Linear Regression Model 
+
+```{r}
+lin_model1<-Overall~Age+Value+Wage+Special+International.Reputation+Weak.Foot+Skill.Moves+Height+Weight+LS+ST+RS+LW+LF+CF+RF+RW+LAM+CAM+RAM+LM+LCM+CM+RCM+RM+LWB+LDM+CDM+RDM+RWB+LB+LCB+CB+RCB+RB+Crossing+Finishing+HeadingAccuracy+ShortPassing+Volleys+Dribbling+Curve+FKAccuracy+LongPassing+BallControl+Acceleration+SprintSpeed+Agility+Reactions+Balance+ShotPower+Jumping+Stamina+Strength+LongShots+Aggression+Interceptions+Positioning+Vision+Penalties+Composure+Marking+StandingTackle+SlidingTackle+GKDiving+GKHandling+GKKicking+GKPositioning+GKReflexes+Release.Clause
+
+fit1<-lm(lin_model1,data_train)
+fit1
+summary(fit1)
+print("Number of Parameters Learnt = ")
+print(length(fit1$coefficients))
+```
+
+In the above linear model, we see - 
+
+1. 16 Coefficients could not be obtained due to singularity of (X.T X) due to multicollinearity of regressors.
+2. As p-value of Global Hypothesis is < 0.05, we reject the Null hypothesis of Global Hypothesis test. Atleast some regressors are significant.
+3. As global null hypothesis is rejected, we see individual significance test for regressors. The regressors which have p-value < 0.05 are significant, we will include those in our model. As Global hypothesis does not test intercept, we include Intercept irrespective of p-value.
+
+```{r}
+#storing True/False for Inclusion/Exclusion of all regressors based on p-value < 0.05
+toselect.x <- summary(fit1)$coeff[-1,4] < 0.05
+#toselect.x
+#storing names of regressors that have p-value < 0.05
+relevant.x <- names(toselect.x)[toselect.x == TRUE] 
+#relevant.x
+#linear model formula with only significant variables
+sig.formula <- as.formula(paste("Overall ~",paste(relevant.x, collapse= "+")))
+print("New Formula ")
+print(sig.formula)
+lin_model2 <- sig.formula
+fit2<-lm(lin_model2,data_train)
+fit2
+summary(fit2)
+
+print("Number of Parameters Learnt = ")
+print(length(fit2$coefficients))
+```
+
+See that -
+1. Reduced number of parameters learnt (= p+1) for (b0, b1, b2, ... , bp) to 39 from initial value of 71
+2. Insignificant decrease in R^2 as compared to reduction in number of parameters - 
+      R^2 has decreased from 0.878 to 0.8775 
+      Adjusted R^2 has decreased from 0.8775 to 0.8772
+      
+
+Graphical Analysis of Residuals - 
+
+Plotting Residuals vs Y (e_i vs y_i), and QQ plot to see if Variance is stabilized
+
+```{r}
+plot(fit2)
+```
+
+Observations - 
+
+1. Residuals vs Fitted :
+    Most Residuals are equally spread along the horizontal line, but  change as the Fitted Values are very high. (Outliers)
+2. Normal QQ Plot :
+    Data is normally distributed except few outliers.
+3. Scale Location Plot: 
+    Data is evenly spread except for outliers when fitted values are very high
+4. Residuals vs Leverage :
+    Cook's Distance Lines are not seen in plot, this means all cases are well inside Cook's distance lines. There are no outliers that alone are extremely influential to the regression results. 
+
+
+Density Plot of Residuals looks like it has a Normal Distribution :
+```{r}
+plot(density(resid(fit2)))
+```
+
+Applying Shapiro-Wilk's Normalcy Test :
+  H_0 : Sample is Normal, H_a: Sample not normal
+  
+```{r}
+shapiro.test(resid(fit2)[1:5000])
+shapiro.test(resid(fit2)[5001:10000])
+shapiro.test(resid(fit2)[10001:length(resid(fit2))])
+```
+
+As p-value is < 0.05 for our data, Shapiro-Wilk test says that Residuals are not normally distributed.
+But Shapiro-Wilk test should be applied only for n<50, as it generally always rejects Large Datasets, even if they lie close to Normal Distribution. 
+
+We simulate Normal Distribution with Slight Deviation, and show that Shapiro-Wilk Test rejects 50% of all n=5000 size datasets.
+```{r}
+x <- replicate(1000, { # generates 100 different tests on each distribution
+                     c(shapiro.test(rnorm(1000)+c(0,0,1,0,0))$p.value, #$
+                       shapiro.test(rnorm(5000)+c(0,0,1,0,0))$p.value) #$
+                    } # rnorm gives a random draw from the normal distribution
+               )
+rownames(x) <- c("n1000","n5000")
+rowMeans(x<0.05)
+```
+For large datasets, Normalcy Tests are not significant because of Central Limit Theorem.
+
+
+We use Box-Cox Transformation to stabilize Variance.
+
+```{r}
+model3_formula <- as.formula(paste("data_train$Overall ~",paste("data_train$",paste(relevant.x, collapse= "+data_train$"))))
+lambda<-boxCox(model3_formula,objective.name="Log-Likelihood",plotit = TRUE)
+ind<-which(lambda$y == max(lambda$y))
+lambda.max<-lambda$x[ind]
+Overall.tr<-bcPower(data_train$Overall,lambda = lambda.max)
+model3_formula <- as.formula(paste("Overall.tr ~",paste(relevant.x, collapse= "+")))
+model3 <-model3_formula
+fit3<-lm(model3,data_train)
+summary(fit3)
+```
+
+See that the values of R^2 and Adjusted R^2 have increased. 
+      R^2 has decreased from 0.8775 to 0.8815
+      Adjusted R^2 has decreased from 0.8772 to 0.8811
+
+
+
+
+
+
+
 
 
 
