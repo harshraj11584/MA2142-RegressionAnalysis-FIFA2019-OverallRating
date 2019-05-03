@@ -216,7 +216,48 @@ See that the values of R^2 and Adjusted R^2 have increased.
 
 
 
+Handling Outliers : 
+1. Leverage
+2. Cook's Distance
 
+```{r}
+p=71
+n=12744
+print("Original Dim of Training Set = ")
+print(dim(data_train))
+data_train_outrem <- data_train
+
+print("Removing Outliers using Leverage")
+lev<- lm.influence(fit1)$hat
+#print(length(lev))
+lev_rem <- lev>3*(p+1)/n
+lev_rem
+
+# COOK'S Distance
+print("Removing Outliers using Cook's Distance")
+#Leverage
+cd<-cooks.distance(fit1)
+print(length(cd))
+#lev stores the h(ii) for all rows i from 1 to 12744
+for (i in c(1:n))
+  if (lev[i]>1)
+  {
+    data_train_outrem <- data_train_outrem[-i,]
+  }
+print("New Dim of Training Set = ")
+print(dim(data_train_outrem))
+
+
+
+
+lin_model4<-Overall~Age+Value+Wage+Special+International.Reputation+Weak.Foot+Skill.Moves+Height+Weight+LS+ST+RS+LW+LF+CF+RF+RW+LAM+CAM+RAM+LM+LCM+CM+RCM+RM+LWB+LDM+CDM+RDM+RWB+LB+LCB+CB+RCB+RB+Crossing+Finishing+HeadingAccuracy+ShortPassing+Volleys+Dribbling+Curve+FKAccuracy+LongPassing+BallControl+Acceleration+SprintSpeed+Agility+Reactions+Balance+ShotPower+Jumping+Stamina+Strength+LongShots+Aggression+Interceptions+Positioning+Vision+Penalties+Composure+Marking+StandingTackle+SlidingTackle+GKDiving+GKHandling+GKKicking+GKPositioning+GKReflexes+Release.Clause
+
+fit4<-lm(lin_model4,data_train_outrem)
+summary(fit4)
+print("Number of Parameters Learnt = ")
+print(length(fit4$coefficients))
+
+```
 
 
 
