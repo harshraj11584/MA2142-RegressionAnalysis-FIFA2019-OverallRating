@@ -123,6 +123,7 @@ First we find the Collinear Regressors.
 corr_x_train <- cor(x_train)
 dim(corr_x_train)
 name_col_rem <- findCorrelation(corr_x_train, cutoff = 0.95, verbose = FALSE, names = TRUE, exact = TRUE)
+print("Regressors to Remove: ")
 name_col_rem
 ```
 
@@ -401,11 +402,36 @@ summary(fit5)
 See that Value of R^2 Adjusted has increased from 0.8778 to 0.8966 after handling Outliers.
 
 
+Now we predict y for Test Set.
+
+```{r}
+#Checking Dimensions
+dim(data_test)
+dim(data_train)
+dim(x_train)
+dim(x_test)
+
+final_prediction <- predict(fit5, newdata=as.data.frame(x_test))
+#length(final_prediction)
+print("See first 10 Prediction ")
+print(final_prediction[c(1:10)])
+print("See first 10 Actual ")
+print(y_test[c(1:10)])
+```
 
 
 
+Plotting Predicted and Actual Curve for Test Set (Only first 100 Values)
 
+```{r}
+ind = c(1:100)
+#y_test = 100*y_test
+#final_prediction = 100 * final_prediction
 
+plot(ind,y_test[c(1:100)],type='l',col="red",xlab="Datapoint Index", ylab="Rating", main="Predicted Rating(Blue) vs Actual Rating(Red)")
+lines(ind,final_prediction[c(1:100)],col="blue")
+
+```
 
 
 
