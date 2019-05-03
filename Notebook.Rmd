@@ -278,10 +278,10 @@ leaps( x=data_new[,2:25], y=data_new[,1], method="adjr2")
 leaps( x=data_new[,2:25], y=data_new[,1], method="r2")
 
 #plots
-leaps=regsubsets(y~., data = data_new, nbest=26) 
-plot(leaps,scale="Cp")
-plot(leaps,scale="r2")
-plot(leaps,scale="adjr2")
+#leaps=regsubsets(y~., data = data_new, nbest=26) 
+#plot(leaps,scale="Cp")
+#plot(leaps,scale="r2")
+#plot(leaps,scale="adjr2")
 
 
 ```
