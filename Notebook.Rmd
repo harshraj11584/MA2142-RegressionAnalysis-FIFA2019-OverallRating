@@ -8,6 +8,8 @@ library('readxl')
 library("dplyr")
 library("ggpubr")
 library('caret')
+librar(olsrr)
+library(MASS)
 ```
 Reading Data from csv File
 Removing the Unwanted Categorical Features from Dataset
@@ -258,7 +260,52 @@ print("Number of Parameters Learnt = ")
 print(length(fit4$coefficients))
 
 ```
+Model Adequacy Selction
+```{r}
 
+#storing True/False for Inclusion/Exclusion of all regressors based on p-value < 0.05
+toselect1.x <- summary(fit1)$coeff[-1,4] < 0.0005
+#toselect.x
+#storing names of regressors that have p-value < 0.05
+relevant1.x <- names(toselect1.x)[toselect1.x == TRUE] 
+
+data_new<-select(data_train,Overall,Skill_Moves,Height,Weight,ST,LCB,Finishing,HeadingAccuracy,ShortPassing,Volleys,LongPassing,BallControl,Acceleration,SprintSpeed,Reactions,Balance,ShotPower,Strength,Interceptions,Positioning,Composure,Marking,SlidingTackle,GKDiving,GKHandling,GKKicking,GKPositioning)
+
+data_new<-as.data.frame(data_new)
+
+leaps( x=data_new[,2:25], y=data_new[,1], method="Cp")
+leaps( x=data_new[,2:25], y=data_new[,1], method="adjr2")
+leaps( x=data_new[,2:25], y=data_new[,1], method="r2")
+
+#plots
+leaps=regsubsets(y~., data = data_new, nbest=26) 
+plot(leaps,scale="Cp")
+plot(leaps,scale="r2")
+plot(leaps,scale="adjr2")
+
+
+```
+Stepwise Regression
+
+```{r}
+lin_model1<-Overall~Age+Value+Wage+Special+International.Reputation+Weak.Foot+Skill.Moves+Height+Weight+LS+ST+RS+LW+LF+CF+RF+RW+LAM+CAM+RAM+LM+LCM+CM+RCM+RM+LWB+LDM+CDM+RDM+RWB+LB+LCB+CB+RCB+RB+Crossing+Finishing+HeadingAccuracy+ShortPassing+Volleys+Dribbling+Curve+FKAccuracy+LongPassing+BallControl+Acceleration+SprintSpeed+Agility+Reactions+Balance+ShotPower+Jumping+Stamina+Strength+LongShots+Aggression+Interceptions+Positioning+Vision+Penalties+Composure+Marking+StandingTackle+SlidingTackle+GKDiving+GKHandling+GKKicking+GKPositioning+GKReflexes+Release.Clause
+
+data_new<-as.data.frame(data_train)
+step_model<-lm(lin_model1,data_new)
+ols_step_all_possible(step_model)
+
+ols_step_forward_p(step_model,prem = 0.05)
+
+ols_step_backward_p(step_model,prem = 0.05)
+
+ols_step_both_p(step_model, details = TRUE)
+
+
+ols_step_backward_aic(step_model,details = TRUE)
+
+ols_step_forward_aic(step_model,details = TRUE)
+
+```
 
 
 
