@@ -249,6 +249,7 @@ fit4<-lm(model4,data_train)
 summary(fit4)
 print("Number of Coeff learnt =")
 print(length(fit4$coefficients))
+plot(fit4)
 ```
 
 See that the values of R^2 and Adjusted R^2 have increased. 
@@ -399,7 +400,7 @@ summary(fit5)
 
 ```
 
-See that Value of R^2 Adjusted has increased from 0.8778 to 0.8966 after handling Outliers.
+See that Value of R^2 Adjusted has increased from 0.8778 to 0.8972 after handling Outliers.
 
 
 Now we predict y for Test Set.
@@ -433,5 +434,10 @@ lines(ind,final_prediction[c(1:100)],col="blue")
 
 ```
 
+Finding RMSE
 
-
+```{r}
+rmse_val <- sqrt(norm(y_test-final_prediction)/n)
+print("RMSE=")
+print(rmse_val)
+```
