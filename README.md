@@ -1,4 +1,4 @@
-# RegressionAnalysis-FIFA2019-OverallRating-Prediction      
+# RegressionAnalysis-FIFA2019-OverallRating     
 Predicting Overall Rating for FIFA 2019 Dataset using only Regression based techniques      
 
 [![Generic badge](https://img.shields.io/badge/Statistical%20Computing-R-brightgreen.svg)](https://shields.io/)
