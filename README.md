@@ -4,7 +4,7 @@ Predicting Overall Rating for FIFA 2019 Dataset using only Regression based tech
 [![Generic badge](https://img.shields.io/badge/Statistical%20Computing-R-brightgreen.svg)](https://shields.io/)
 
 
-[Link for DataSet](https://www.kaggle.com/karangadiya/fifa19)     
+[Link to DataSet](https://www.kaggle.com/karangadiya/fifa19)     
 
 Used All Numerical Features except Potential Rating for predicting Overall Rating.        
 
